@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Eignungstest FH Aachen - Probetest</title>
+  <style>
+    :root { font-family: "Trebuchet MS", Verdana, sans-serif; color: #17272b; background: #f3f5f3; --surface: #fff; --soft: #e8efed; --accent: #137f77; --text: #17272b; --muted: #516569; --border: #c9d8d4; --warning: #f9edd7; }
+    :root[data-theme="dark"] { color: #e8f2ef; background: #152325; --surface: #203235; --soft: #293e40; --accent: #66cbb8; --text: #e8f2ef; --muted: #bdceca; --border: #446263; --warning: #4c3d27; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--text); background: radial-gradient(circle at 90% 0%, var(--soft), transparent 45%), #f3f5f3; min-height: 100vh; }
+    :root[data-theme="dark"] body { background: radial-gradient(circle at 90% 0%, #254447, transparent 45%), #152325; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 10px 15px; border-radius: 5px; }
+    button:hover:not(:disabled), button:focus-visible { border-color: var(--accent); outline-color: var(--accent); }
+    button:disabled { cursor: not-allowed; opacity: .45; }
+    .primary { background: #137f77; color: #fff; border-color: #137f77; font-weight: bold; }
+    .primary:hover:not(:disabled) { background: #08645e; }
+    header { border-bottom: 1px solid var(--border); background: var(--surface); }
+    .header-inner, main { max-width: 1050px; margin: auto; padding: 20px 24px; }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    .brand { font-weight: bold; font-size: 19px; }
+    .controls, .actions, .helper-fields { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; }
+    label { display: grid; gap: 5px; font-size: 13px; color: var(--muted); }
+    select, input { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 9px; border-radius: 4px; min-width: 0; }
+    h1 { font-size: clamp(26px, 4vw, 38px); margin: 0 0 8px; }
+    h2 { font-size: 19px; margin: 0 0 14px; }
+    p { line-height: 1.55; }
+    .lead { max-width: 720px; font-size: 16px; }
+    .intro { padding: 28px 0 18px; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 22px; margin-bottom: 18px; }
+    .notice { background: var(--warning); }
+    .topic-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 14px 0 22px; }
+    .topic { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
+    .topic h3 { font-size: 16px; margin: 0 0 8px; }
+    .topic p { margin: 0; color: var(--muted); font-size: 13px; }
+    .topic ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .test-heading, .row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+    .muted { color: var(--muted); }
+    .timer { font-weight: bold; font-variant-numeric: tabular-nums; color: var(--accent); }
+    progress { width: 100%; height: 8px; accent-color: #137f77; margin: 14px 0 22px; }
+    .question-text { white-space: pre-line; font-size: 18px; line-height: 1.6; overflow-wrap: anywhere; }
+    .options { display: grid; gap: 9px; margin: 16px 0 22px; }
+    .option { width: 100%; text-align: left; padding: 15px; min-height: 54px; overflow-wrap: anywhere; }
+    .option.selected { border: 2px solid var(--accent); background: var(--soft); font-weight: bold; }
+    .option strong { display: inline-block; min-width: 30px; color: var(--accent); }
+    .helper-fields input { width: 110px; }
+    .helper-output { font-weight: bold; padding-bottom: 8px; }
+    .actions { margin: 22px 0; }
+    .actions .spacer { flex: 1; }
+    .score { font-size: 32px; font-weight: bold; margin: 8px 0; }
+    .passed { color: #278047; } .failed { color: #bf4b39; }
+    .result-row { border-bottom: 1px solid var(--border); padding: 9px 0; }
+    .result-row:last-child { border-bottom: 0; }
+    .detail { border-bottom: 1px solid var(--border); padding: 16px 0; overflow-wrap: anywhere; }
+    .detail:last-child { border-bottom: 0; }
+    .detail p { margin: 6px 0; white-space: pre-line; }
+    @media (max-width: 640px) { .topic-grid { grid-template-columns: 1fr; } .header-inner, main { padding: 16px; } .panel { padding: 16px; } .actions button { flex: 1 1 auto; } }
+  </style>
+</head>
+<body>
+  <header><div class="header-inner"><div class="brand">FH Aachen · Eignungstest</div><div class="controls">
+    <label id="language-label">Sprache<select id="language"><option value="de">Deutsch</option><option value="en">English</option></select></label>
+    <label id="theme-label">Design<select id="theme"><option value="light">Hell</option><option value="dark">Dunkel</option></select></label>
+    <span id="clock" class="timer" role="timer"></span>
+  </div></div></header>
+  <main id="app"></main>
+  <script>
+    "use strict";
+    const topics = [
+      {de: ["Algebra und Arithmetik", ["Bruchrechnung","Potenzen und Wurzeln","Potenzgesetze","Termumformungen","Lineare Gleichungen","Quadratische Gleichungen","Gleichungssysteme"]], en: ["Algebra and arithmetic", ["Fractions","Powers and roots","Laws of exponents","Rearranging expressions","Linear equations","Quadratic equations","Systems of equations"]]},
+      {de: ["Funktionen", ["Lineare Funktionen f(x) = mx + b","Steigung von Geraden","Parallele und senkrechte Geraden","Schnittpunkte von Funktionen","Nullstellen","Funktionsgraphen","Trigonometrische Funktionen (Sinus, Cosinus)"]], en: ["Functions", ["Linear functions f(x) = mx + b","Slope of straight lines","Parallel and perpendicular lines","Intersections of functions","Roots / zeros","Function graphs","Trigonometric functions (sine, cosine)"]]},
+      {de: ["Stochastik", ["Wahrscheinlichkeitsrechnung","Gegenwahrscheinlichkeit","Bedingte Wahrscheinlichkeit","Satz von Bayes","Kombinatorik (n!)"]], en: ["Probability and statistics", ["Probability calculation","Complementary probability","Conditional probability","Bayes' theorem","Combinatorics (n!)"]]},
+      {de: ["Geometrie", ["Flächenberechnung","Dreiecke","Satz des Pythagoras","Sinus, Cosinus, Tangens","Kreisberechnung (Fläche und Umfang)"]], en: ["Geometry", ["Area calculation","Triangles","Pythagorean theorem","Sine, cosine, tangent","Circles (area and circumference)"]]},
+      {de: ["Vektoren und analytische Geometrie", ["Vektorrechnung","Vektoren addieren","Länge eines Vektors","Skalarprodukt","Parallele und senkrechte Vektoren","Geraden und Ebenen","Spiegelungen"]], en: ["Vectors and analytic geometry", ["Vector arithmetic","Adding vectors","Length of a vector","Dot product","Parallel and perpendicular vectors","Lines and planes","Reflections"]]},
+      {de: ["Zahlensysteme", ["Binärsystem (Dualsystem)","Umrechnung Binär- und Dezimalsystem","Oktalsystem","Hexadezimalsystem","Zahlenbereiche und Darstellung bis 256 (8-Bit)"]], en: ["Number systems", ["Binary system","Conversion between binary and decimal","Octal system","Hexadecimal system","Value ranges and representation up to 256 (8-bit)"]]}
+    ];
+    const copy = {
+      de: {
+        title:"Probetest für den Eignungstest der FH Aachen", light:"Hell", dark:"Dunkel", welcome:"Herzlich willkommen!",
+        intro:"Dieser Probetest hilft dir dabei, deinen Wissensstand einzuschätzen und die Themen des Eignungstests kennenzulernen. Nimm dir kurz Zeit für die Hinweise und starte anschließend den Test.",
+        rules:"Ablauf und Regeln", instructions:[
+          "Multiple-Choice-Test: Es zählt ausschließlich die richtige Lösung, nicht der Rechenweg (wie im echten Eignungstest).",
+          "6 Hauptthemen mit je 5 Aufgaben – insgesamt 30 Aufgaben.",
+          "Zeitmodus frei wählbar: Timer mit 2 Stunden Limit oder Stoppuhr, die deine benötigte Zeit misst.",
+          "Der Test ist in Deutsch und Englisch verfügbar.","Pro Aufgabe ist genau eine Antwortmöglichkeit richtig.",
+          "Taschenrechner sind nicht erlaubt – auch im echten Eignungstest darfst du keinen benutzen.",
+          "Papier und Stift darfst du verwenden, zum Beispiel für Rechenwege oder Skizzen.",
+          "Am Ende erhältst du eine Auswertung deiner Ergebnisse."
+        ],
+        noticeTitle:"Wichtiger Hinweis", notice:"Die Aufgaben dienen ausschließlich zum Üben und ersetzen nicht den offiziellen Eignungstest der FH Aachen. Es besteht kein Anspruch auf Vollständigkeit.",
+        topics:"Themenübersicht", topicsSubtitle:"6 Hauptthemen mit je 5 Aufgaben", mode:"Zeitmodus", timer:"Timer (2 Std.)", stopwatch:"Stoppuhr", modeHintTimer:"Timer – du hast 2 Stunden Zeit.", modeHintStopwatch:"Stoppuhr – deine Zeit wird gemessen.",
+        start:"Test starten", question:"Frage", of:"von", topic:"Thema", back:"← Zurück", next:"Weiter →", finish:"Test beenden", abort:"Test abbrechen", remaining:"Verbleibende Zeit", elapsed:"Verstrichene Zeit", timeOver:"Zeit abgelaufen", helper:"Hilfsrechner", helperHint:"Nur die für diese Aufgabe nötigen Rechenschritte sind verfügbar.", result:"Ergebnis", invalid:"Ungültige Eingabe", score:"Punkte", evaluation:"Auswertung", passed:"Bestanden", failed:"Nicht bestanden", passing:"Zum Bestehen sind mindestens 50 % nötig.", byTopic:"Ergebnis nach Themen", details:"Alle Aufgaben im Überblick", yourAnswer:"Deine Antwort", correctAnswer:"Richtige Antwort", noAnswer:"nicht beantwortet", correct:"richtig", wrong:"falsch", newTest:"Neuer Test"
+      },
+      en: {
+        title:"Practice test for the FH Aachen aptitude test", light:"Light", dark:"Dark", welcome:"Welcome!",
+        intro:"This practice test helps you assess your current knowledge and get familiar with the topics of the aptitude test. Take a moment to read the instructions, then start the test.",
+        rules:"Procedure and rules", instructions:[
+          "Multiple choice test: only the correct answer counts, not the calculation steps (just like inthe real aptitude test).",
+          "6 main topics with 5 tasks each – 30 tasks in total.",
+          "Choose your time mode: timer with a 2 hour limit or a stopwatch measuring the time you need.",
+          "The test is available in German and English.","Exactly one answer option is correct per task.",
+          "Calculators are not allowed – they are not permitted in the real aptitude test either.",
+          "You may use paper and pen, for example for calculation steps or sketches.",
+          "At the end you will receive an evaluation of your results."
+        ],
+        noticeTitle:"Important note", notice:"The tasks are for practice only and do not replace the official FH Aachen aptitude test. No claim is made to completeness.",
+        topics:"Topic overview", topicsSubtitle:"6 main topics with 5 tasks each", mode:"Time mode", timer:"Timer (2 hrs)", stopwatch:"Stopwatch", modeHintTimer:"Timer – you have 2 hours.", modeHintStopwatch:"Stopwatch – your time is measured.",
+        start:"Start test", question:"Question", of:"of", topic:"Topic", back:"← Previous", next:"Next →", finish:"Finish test", abort:"Cancel test", remaining:"Time remaining", elapsed:"Time elapsed", timeOver:"Time is up", helper:"Helper calculator", helperHint:"Only the steps needed for this task are available.", result:"Result", invalid:"Invalid input", score:"Points", evaluation:"Evaluation", passed:"Passed", failed:"Not passed", passing:"At least 50 % are required to pass.", byTopic:"Result by topic", details:"All tasks at a glance", yourAnswer:"Your answer", correctAnswer:"Correct answer", noAnswer:"not answered", correct:"correct", wrong:"wrong", newTest:"New test"
+      }
+    };
+    const state = {language:"de", theme:"dark", mode:"timer", page:"start", current:0, questions:[], answers:[], helpers:{}, started:0, elapsed:0, interval:null};
+    const t = key => copy[state.language][key];
+    const rand = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
+    const pick = list => list[rand(0, list.length - 1)];
+    const nonzero = (min, max) => { let value; do { value = rand(min, max); } while (!value); return value; };
+    const round = (value, digits = 2) => {
+      const bits=new DataView(new Float64Array([Math.abs(value)]).buffer).getBigUint64(0,true);
+      const exponent=Number((bits>>52n)&2047n);
+      const significand=(bits&((1n<<52n)-1n))|(exponent?1n<<52n:0n);
+      const shift=exponent?exponent-1075:-1074;
+      let numerator=significand*10n**BigInt(digits),denominator=1n;
+      if(shift>=0) numerator<<=BigInt(shift);
+      else denominator<<=BigInt(-shift);
+      const quotient=numerator/denominator,remainder=numerator%denominator;
+      const rounded=quotient+(2n*remainder>denominator||(2n*remainder===denominator&&quotient%2n===1n)?1n:0n);
+      return Math.sign(value)*Number(rounded)/10**digits;
+    };
+    const shuffle = values => { for (let index = values.length - 1; index > 0; index--) { const other = rand(0, index); [values[index], values[other]] = [values[other], values[index]]; } return values; };
+    const gcd = (first, second) => second ? gcd(second, first % second) : Math.abs(first);
+    const fraction = (numerator, denominator = 1) => { if (!denominator) throw Error("division by zero"); const divisor = gcd(numerator, denominator); return [numerator / divisor * Math.sign(denominator), Math.abs(denominator) / divisor]; };
+    const add = (a, b) => fraction(a[0] * b[1] + b[0] * a[1], a[1] * b[1]);
+    const subtract = (a, b) => fraction(a[0] * b[1] - b[0] * a[1], a[1] * b[1]);
+    const multiply = (a, b) => fraction(a[0] * b[0], a[1] * b[1]);
+    const divide = (a, b) => fraction(a[0] * b[1], a[1] * b[0]);
+    const rational = value => Array.isArray(value) ? value : [value,1];
+    const negative = value => fraction(-rational(value)[0],rational(value)[1]);
+    const powFraction = (value,power) => fraction(value[0]**power,value[1]**power);
+    const randomFraction = () => { let value; do { value=fraction(nonzero(-10,10),nonzero(-10,10)); } while(value[1]===1); return value; };
+    const negativeInteger = () => rand(-1,1)||-1;
+    const randomVector = () => [nonzero(-10,10),nonzero(-10,10),nonzero(-10,10)];
+    const randomLine = () => [nonzero(-5,5),nonzero(-5,5)];
+    const randomPoint = () => [nonzero(-5,5),nonzero(-5,5)];
+    const randomLinear = () => [nonzero(-5,5),nonzero(-5,5),nonzero(-15,15)];
+    const randomPolynomial = () => [nonzero(-5,5),nonzero(-5,5),nonzero(-5,5)];
+    const nonSquare = () => pick([2,3,5]);
+    const randomTriangle = () => { const a=rand(1,10); return [a,rand(a+1,20)]; };
+    const quadraticRoots = (a,b,c) => {
+      const discriminant=b*b-4*a*c,root=Math.sqrt(discriminant);
+      if(!Number.isInteger(root)) return [];
+      return [-root,root].map(sign=>fraction(-b+sign,2*a)).filter((value,index,all)=>index===0||fmt(value)!==fmt(all[0])).sort((left,right)=>left[0]/left[1]-right[0]/right[1]);
+    };
+    const fmt = value => Array.isArray(value) ? (value[1] === 1 ? String(value[0]) : value.join("/")) : String(value);
+    const polynomial = terms => terms.filter(([coefficient]) => rational(coefficient)[0]).map(([coefficient,variable],index) => {
+      const value=rational(coefficient),size=fraction(Math.abs(value[0]),value[1]);
+      return `${value[0]<0?(index?" - ":"-"):(index?" + ":"")}${size[0]===size[1]&&variable?"":fmt(size)}${variable}`;
+    }).join("") || "0";
+    const line = (slope, intercept) => `y = ${polynomial([[slope, "x"], [intercept, ""]])}`;
+    const vector = values => `(${values.join(" | ")})`;
+    const set = values => `{ ${values.map(fmt).join(" ; ")} }`;
+    const additive = (operation,value) => rational(value)[0]<0?`${operation==="+"?"-":"+"} ${fmt(negative(value))}`:`${operation} ${fmt(value)}`;
+    const operand = value => rational(value)[0]<0?`(${fmt(value)})`:fmt(value);
+    const bin = value => value.toString(2);
+    const question = (topic, de, en, solution, fakes, tools = []) => ({topic, de, en, solution:fmt(solution), fakes:fakes.map(fmt), tools});
+    const distractors = (solution, producer) => { const values = []; let attempts = 0; while (values.length < 3 && attempts++ < 300) { const candidate = fmt(producer()); if (candidate !== fmt(solution) && !values.includes(candidate)) values.push(candidate); } if (values.length !== 3) throw Error("Not enough distinct answers"); return values; };
+    const dot = (a, b) => a.reduce((total, number, index) => total + number * b[index], 0);
+    const length = value => Math.sqrt(dot(value, value));
+    const circleArea = radius => round(3.14 * radius ** 2);
+    const percent = value => `${round((rational(value)[0]/rational(value)[1]) * 100, 1).toString().replace(".", ",")} %`;
+    const factorial = value => value < 2 ? 1 : value * factorial(value - 1);
+    const choose = (n, k) => factorial(n) / factorial(k) / factorial(n-k);
+    const numberBase = (value, base) => value.toString(base);
+    const flipBit = bits => { const at = rand(0, bits.length - 1); return bin(parseInt(bits.slice(0, at) + (bits[at] === "0" ? "1" : "0") + bits.slice(at + 1), 2)); };
+
+    const builders = [
+      () => {
+        let first,second,third,operation,last,solution;
+        do {
+          first=randomFraction(); second=randomFraction(); third=randomFraction();
+          operation=pick(["+","-"]); last=pick(["*","/"]);
+          const intermediate=operation==="+"?add(first,second):subtract(first,second);
+          solution=last==="*"?multiply(intermediate,third):divide(intermediate,third);
+        } while(fmt(first)===fmt(second)||Math.abs(solution[0])>50||solution[1]>30);
+        const vary=denominator=>{ let changed; do { changed=denominator+nonzero(-3,3); } while(!changed); return changed; };
+        const fake1=fraction(solution[0],vary(solution[1]));
+        const fake2=negative(solution);
+        const fake3=fraction(solution[0]+nonzero(-3,3),vary(solution[1]));
+        const term=`(${fmt(first)} ${additive(operation,second)}) ${last} ${operand(third)}`;
+        return question(0,`Berechne und kürze so weit wie möglich:\n${term}`,`Calculate and simplify as far as possible:\n${term}`,solution,[fake1,fake2,fake3]);
+      },
+      () => {
+        const [a,b,c,d,e,f,g,h,i]=Array.from({length:9},()=>nonzero(-5,5));
+        const first=pick(["*","/"]), second=pick(["*","/"]);
+        const combine=(left,right,operation)=>operation==="*"?left+right:left-right;
+        const x=combine(combine(a*c,d*f,first),g*i,second);
+        const y=combine(combine(b*c,e*f,first),h*i,second);
+        const display=(firstPower,secondPower)=>`a^${firstPower} * b^${secondPower}`;
+        const term=`(a^${a} * b^${b})^${c} ${first} (a^${d} * b^${e})^${f} ${second} (a^${g} * b^${h})^${i}`;
+        return question(0,`Vereinfache für a, b ungleich 0:\n${term}`,`Simplify for a, b not equal to 0:\n${term}`,display(x,y),[
+          display(x+nonzero(-3,3),y), display(-x,y+nonzero(-3,3)),
+          display(x+nonzero(-3,3),y+(rand(-1,1)||-1))
+        ]);
+      },
+      () => {
+        const root=nonSquare(),operation1=pick(["+","-"]),operation2=pick(["+","-"]);
+        const values=[];
+        while(values.length<3) { const value=rand(2,5)**2*root; if(!values.includes(value)) values.push(value); }
+        const [first,second,third]=values;
+        const coefficient=Math.trunc(Math.sqrt(first/root)+(operation1==="+"?1:-1)*Math.sqrt(second/root)+(operation2==="+"?1:-1)*Math.sqrt(third/root));
+        let other; do { other=nonSquare(); } while(other===root);
+        const solution=`${coefficient}*√${root}`;
+        const fakes=[`${Math.trunc(coefficient+nonzero(-3,3))}*√${root}`,`${-coefficient}*√${root}`,`${coefficient}*√${other}`];
+        const term=`√${first} ${operation1} √${second} ${operation2} √${third}`;
+        return question(0,`Vereinfache:\n${term}`,`Simplify:\n${term}`,solution,fakes);
+      },
+      () => {
+        let coefficients,roots;
+        do { coefficients=randomPolynomial(); roots=quadraticRoots(...coefficients); } while(roots.length!==2);
+        const [first,second]=roots,display=values=>set(values),[a,b,c]=coefficients;
+        const fakes=[
+          display([multiply(first,[negativeInteger(),1]),multiply(second,[negativeInteger(),1])]),
+          display([first,add(second,[nonzero(-5,5),1])]),
+          display([add(first,[nonzero(-1,1),1]),add(second,[nonzero(-1,1),1])])
+        ];
+        const term=`${polynomial([[a,"x^2"],[b,"x"],[c,""]])} = 0`;
+        return question(0,`Bestimme die Lösungsmenge von:\n${term}`,`Determine the solution set of:\n${term}`,display(roots),fakes);
+      },
+      () => {
+        let first,second;
+        do { first=randomLinear(); second=randomLinear(); } while(first[0]*second[1]-second[0]*first[1]===0);
+        const [a,b,c]=first,[d,e,f]=second,determinant=a*e-b*d;
+        const x=fraction(c*e-b*f,determinant),y=fraction(a*f-c*d,determinant);
+        const show=(horizontal,vertical)=>`x = ${fmt(horizontal)} ; y = ${fmt(vertical)}`;
+        const variant=(range,negativeOnly=false)=>show(add(x,[negativeOnly?negativeInteger():nonzero(-range,range),1]),add(y,[negativeOnly?negativeInteger():nonzero(-range,range),1]));
+        const term=`${polynomial([[a,"x"],[b,"y"]])} = ${c}\n${polynomial([[d,"x"],[e,"y"]])} = ${f}`;
+        return question(0,`Löse das Gleichungssystem:\n${term}`,`Solve the system of equations:\n${term}`,show(x,y),[variant(3),variant(1),variant(1,true)]);
+      },
+      () => {
+        const first=randomPoint(); let second; do { second=randomPoint(); } while(second[0]===first[0]);
+        const slope=fraction(second[1]-first[1],second[0]-first[0]);
+        const intercept=subtract([first[1],1],multiply(slope,[first[0],1]));
+        const fakes=[
+          line(slope,add(intercept,[nonzero(-3,3),1])),
+          line(add(slope,[nonzero(-3,3),1]),add(intercept,[nonzero(-3,3),1])),
+          line(multiply(slope,[negativeInteger(),1]),intercept)
+        ];
+        return question(1,`Eine Gerade verläuft durch die Punkte P(${first[0]} | ${first[1]}) und Q(${second[0]} | ${second[1]}).\nWie lautet ihre Funktionsgleichung?`,`A straight line passes through the points P(${first[0]} | ${first[1]}) and Q(${second[0]} | ${second[1]}).\nWhat is its equation?`,line(slope,intercept),fakes);
+      },
+      () => {
+        const [slope,intercept]=randomLine(),[x,y]=randomPoint();
+        const perpendicular=fraction(-1,slope),constant=subtract([y,1],multiply(perpendicular,[x,1]));
+        const fakes=[
+          line(perpendicular,add(constant,[nonzero(-3,3),1])),
+          line(add(perpendicular,[nonzero(-3,3),1]),add(constant,[nonzero(-3,3),1])),
+          line(negative(perpendicular),constant)
+        ];
+        return question(1,`Gesucht ist die Gerade, die senkrecht zu ${line(slope,intercept)} verläuft\nund durch den Punkt R(${x} | ${y}) geht.`,`Find the straight line that is perpendicular to ${line(slope,intercept)}\nand passes through the point R(${x} | ${y}).`,line(perpendicular,constant),fakes);
+      },
+      () => {
+        let straight,parabola,roots;
+        do {
+          straight=randomLine(); parabola=randomLinear();
+          roots=quadraticRoots(parabola[0],parabola[1]-straight[0],parabola[2]-straight[1]);
+        } while(roots.length!==2);
+        const show=values=>set(values);
+        const variants=[[3,3],[1,1],[0,0]].map(([first,second],index)=>show([
+          add(roots[0],[index===2?negativeInteger():nonzero(-first,first),1]),
+          add(roots[1],[index===2?negativeInteger():nonzero(-second,second),1])
+        ]));
+        const first=`f(x) = ${polynomial([[parabola[0],"x^2"],[parabola[1],"x"],[parabola[2],""]])}`;
+        const second=`g(x) = ${polynomial([[straight[0],"x"],[straight[1],""]])}`;
+        return question(1,`Gegeben sind ${first} und ${second}.\nBestimme die x-Werte aller Schnittpunkte der beiden Graphen.`,`Given are ${first} and ${second}.\nDetermine the x-values of all intersection points of the two graphs.`,show(roots),variants);
+      },
+      () => {
+        let coefficients,roots;
+        do {
+          coefficients=randomPolynomial();
+          roots=[...quadraticRoots(...coefficients),[0,1]].sort((left,right)=>left[0]/left[1]-right[0]/right[1]);
+        } while(roots.length!==3||new Set(roots.map(fmt)).size!==3);
+        const show=values=>set(values);
+        const variants=[];
+        while(variants.length<3) {
+          const index=variants.length;
+          const candidate=roots.map(root=>index===2?add(negative(root),[nonzero(-2,2),1]):add(root,[nonzero(index===0?-3:-1,index===0?3:1),1]));
+          const text=show(candidate);
+          if(text!==show(roots)&&!variants.includes(text)) variants.push(text);
+        }
+        const expression=`f(x) = ${polynomial([[coefficients[0],"x^3"],[coefficients[1],"x^2"],[coefficients[2],"x"]])}`;
+        return question(1,`Bestimme alle Nullstellen von ${expression}.`,`Determine all roots of ${expression}.`,show(roots),variants);
+      },
+      () => {
+        const [a,b,c]=randomPolynomial(),period=fraction(2,Math.abs(b));
+        const range=[c-Math.abs(a),c+Math.abs(a)];
+        const show=(frequency,limits)=>`T = ${fmt(frequency)}*pi ; W = [${limits[0]} ; ${limits[1]}]`;
+        const solution=show(period,range);
+        const fakes=distractors(solution,()=>{
+          const variant=rand(1,3);
+          if(variant===1) return show(multiply(period,[2,1]),range);
+          if(variant===2) { const shift=nonzero(-2,2); return show(period,range.map(value=>value+shift)); }
+          return show(period,[-range[1],-range[0]]);
+        });
+        const term=`f(x) = ${a} * sin(${polynomial([[b,"x"]])}) ${additive("+",c)}`;
+        return question(1,`Gegeben ist ${term}.\nWelche Angabe zu Periode T und Wertebereich W ist richtig?`,`Given is ${term}.\nWhich statement about period T and range W is correct?`,solution,fakes);
+      },
+      () => {
+        const probability=fraction(1,6),amount=2,solution=subtract([1,1],powFraction(subtract([1,1],probability),amount));
+        const fakes=distractors(solution,()=>pick([
+          subtract([1,1],solution),multiply(probability,[amount,1]),powFraction(probability,amount),
+          fraction(solution[0]+nonzero(-2,2),solution[1])
+        ]));
+        return question(2,`Ein fairer Würfel wird ${amount}-mal geworfen.\nWie groß ist die Wahrscheinlichkeit, mindestens eine Sechs zu werfen?`,`A fair die is rolled ${amount} times.\nWhat is the probability of rolling at least one six?`,solution,fakes);
+      },
+      () => {
+        const replacement=pick([true,false]),color=pick(["red","blue"]);
+        const red=rand(2,10),blue=rand(2,10),redCount=rand(2,red),blueCount=rand(2,blue);
+        const available=color==="red"?red:blue,count=color==="red"?redCount:blueCount,total=red+blue;
+        const draw=putBack=>{
+          let result=[1,1];
+          for(let index=0;index<count;index++) result=multiply(result,fraction(available-(putBack?0:index),total-(putBack?0:index)));
+          return result;
+        };
+        const solution=draw(replacement),other=draw(!replacement),single=fraction(available,total);
+        const fakes=distractors(solution,()=>pick([other,single,subtract([1,1],solution),fraction(solution[0]+nonzero(-2,2),solution[1])]));
+        return question(2,`In einer Urne liegen ${red} rote und ${blue} blaue Kugeln.\nEs werden ${count} Kugeln ${replacement?"mit":"ohne"} Zurücklegen gezogen.\nWie groß ist die Wahrscheinlichkeit, dass alle gezogenen Kugeln ${color==="red"?"rot":"blau"} sind?`,`An urn contains ${red} red and ${blue} blue balls.\n${count} balls are drawn ${replacement?"with":"without"} replacement.\nWhat is the probability that all drawn balls are ${color}?`,solution,fakes);
+      },
+      () => {
+        let prevalence,sensitivity,falsePositive,solution;
+        do {
+          prevalence=fraction(pick([1,2,4,5,10,20,25]),100);
+          sensitivity=fraction(pick([80,90,95,96,98]),100);
+          falsePositive=fraction(pick([1,2,4,5,10,20]),100);
+          const truePositive=multiply(prevalence,sensitivity);
+          const falseAlarm=multiply(subtract([1,1],prevalence),falsePositive);
+          solution=divide(truePositive,add(truePositive,falseAlarm));
+        } while(solution[1]>100);
+        const fakes=distractors(percent(solution),()=>percent(pick([sensitivity,prevalence,subtract([1,1],solution),fraction(solution[0]+nonzero(-2,2),solution[1])])));
+        return question(2,`${percent(prevalence)} einer Bevölkerung sind von einer Krankheit betroffen.\nEin Test erkennt Erkrankte zu ${percent(sensitivity)} korrekt (positiv).\nBei Gesunden schlägt der Test fälschlicherweise in ${percent(falsePositive)} der Fälle an.\nEine zufällig getestete Person erhält ein positives Ergebnis.\nWie wahrscheinlich ist sie erkrankt?`,`${percent(prevalence)} of a population suffer from a disease.\nA test correctly identifies ${percent(sensitivity)} of the ill people (positive).\nFor healthy people the test wrongly reacts in ${percent(falsePositive)} of the cases.\nA randomly tested person receives a positive result.\nHow likely is this person ill?`,percent(solution),fakes);
+      },
+      () => {
+        let word,arrangements;
+        do {
+          word=pick(["STATISTIK","BANANE","MISSISSIPPI","ANANAS","OTTO","ANNA","TREPPE","KAFFEE","SILBE","REGAL","SOMMER","WINTER","BLUME","PAPIER","TOMATE","ZITRONE","ERDBEERE","MATHE"]);
+          const counts={}; for(const letter of word) counts[letter]=(counts[letter]||0)+1;
+          arrangements=factorial(word.length)/Object.values(counts).reduce((product,count)=>product*factorial(count),1);
+        } while(new Set(word).size===word.length||arrangements>100000);
+        const show=value=>value.toLocaleString("en-US").replaceAll(","," ");
+        const fakes=distractors(arrangements,()=>{
+          const variant=rand(1,3);
+          return variant===1?factorial(word.length):variant===2?arrangements*rand(2,4):Math.floor(arrangements/rand(2,4));
+        });
+        return question(2,`Wie viele verschiedene Buchstabenanordnungen lassen sich aus allen\nBuchstaben des Wortes ${word} bilden?`,`How many different arrangements of letters can be formed from all\nletters of the word ${word}?`,show(arrangements),fakes.map(show));
+      },
+      () => {
+        let attempts,hits,solution;
+        const probability=(tries,successes)=>fraction(choose(tries,successes)*5**(tries-successes),6**tries);
+        do { attempts=rand(4,6); hits=rand(2,attempts-1); solution=probability(attempts,hits); } while(solution[1]>10000);
+        const fakes=distractors(solution,()=>{
+          const variant=rand(1,4);
+          if(variant===1) return fraction(5**(attempts-hits),6**attempts);
+          if(variant===2) return probability(attempts,hits+1);
+          if(variant===3) return probability(attempts,hits-1);
+          return fraction(solution[0]+nonzero(-2,2),solution[1]);
+        });
+        return question(2,`Ein fairer Würfel wird ${attempts}-mal geworfen.\nWie groß ist die Wahrscheinlichkeit, dabei genau ${hits}-mal eine Sechs zu werfen?`,`A fair die is rolled ${attempts} times.\nWhat is the probability of rolling exactly ${hits} sixes?`,solution,fakes);
+      },
+      () => {
+        let a,c,b;
+        do { [a,c]=randomTriangle(); b=round(Math.sqrt(c*c-a*a)); } while(!Number.isInteger(b)||b===0);
+        const area=round(a*b/2),show=value=>`${fmt(value)} cm^2`;
+        const fakes=distractors(area,()=>{
+          const variant=rand(1,3);
+          return variant===1?round(a*b):variant===2?round(a*c/2):round(area+rand(1,3));
+        });
+        return question(3,`In einem rechtwinkligen Dreieck ist eine Kathete ${a} cm lang,\ndie Hypotenuse misst ${c} cm.\nWie groß ist der Flächeninhalt?`,`In a right-angled triangle one leg is ${a} cm long,\nthe hypotenuse measures ${c} cm.\nWhat is the area?`,show(area),fakes.map(show));
+      },
+      () => {
+        let a,c,b;
+        do { [a,c]=randomTriangle(); b=round(Math.sqrt(c*c-a*a)); } while(!Number.isInteger(b)||b===0);
+        const kind=pick(["sin","cos","tan"]);
+        const angleFor=type=>round((type==="sin"?Math.asin(b/c):type==="cos"?Math.acos(b/c):Math.atan(b/a))*180/Math.PI);
+        const angle=angleFor(kind),show=value=>`${fmt(value)}°`;
+        const fakes=distractors(angle,()=>{
+          const variant=rand(1,3);
+          return variant===1?round(90-angle):variant===2?angleFor(pick(["sin","cos","tan"].filter(type=>type!==kind))):round(angle+nonzero(-5,5));
+        });
+        const ratio=kind==="tan"?"tan(alpha) = a/b":`${kind}(alpha) = b/c`;
+        return question(3,`In einem rechtwinkligen Dreieck gilt a = ${a} cm, b = ${b} cm und c = ${c} cm\n(c ist die Hypotenuse).\nBerechne den Winkel alpha mit ${ratio} (gerundet).`,`In a right-angled triangle a = ${a} cm, b = ${b} cm and c = ${c} cm\n(c is the hypotenuse).\nCalculate the angle alpha with ${ratio} (rounded).`,show(angle),fakes.map(show),["sin⁻¹","cos⁻¹","tan⁻¹","÷"]);
+      },
+      () => {
+        const radius=rand(1,10),circumference=round(2*3.14*radius),area=circleArea(radius);
+        const fakes=distractors(area,()=>pick([round(area/2),round(area*2),round(area*4),round(circumference)]));
+        const show=value=>`${fmt(value)} cm^2`;
+        return question(3,`Ein Kreis hat einen Umfang von ${circumference} cm.\nWie groß ist sein Flächeninhalt (gerundet)?`,`A circle has a circumference of ${circumference} cm.\nWhat is its area (rounded)?`,show(area),fakes.map(show));
+      },
+      () => {
+        const radius=rand(1,10),angle=pick([30,45,60,90,120,135,150,180,210,225,240,270,300,315,330]);
+        const area=round(radius**2*3.14*angle/360);
+        const fakes=distractors(area,()=>pick([circleArea(radius),round(area*2),round(area/2),round(area+rand(1,3))]));
+        const show=value=>`${fmt(value)} cm^2`;
+        return question(3,`Ein Kreisausschnitt mit dem Mittelpunktswinkel ${angle}° gehört zu einem\nKreis mit Radius ${radius} cm.\nWie groß ist die Fläche des Ausschnitts (gerundet)?`,`A circular sector with a central angle of ${angle}° belongs to a\ncircle with radius ${radius} cm.\nWhat is the area of the sector (rounded)?`,show(area),fakes.map(show));
+      },
+      () => {
+        const side=rand(1,10),radius=side/2,area=round(side**2-circleArea(radius));
+        const fakes=distractors(area,()=>pick([circleArea(radius),round(side**2),round(area*2),round(area+rand(1,3))]));
+        const show=value=>`${fmt(value)} cm^2`;
+        return question(3,`Einem Quadrat mit der Seitenlänge ${side} cm wird ein Kreis einbeschrieben\n(der Kreis berührt alle vier Seiten).\nWie groß ist die Restfläche zwischen Quadrat und Kreis (gerundet)?`,`A circle is inscribed in a square with side length ${side} cm\n(the circle touches all four sides).\nWhat is the remaining area between square and circle (rounded)?`,show(area),fakes.map(show));
+      },
+      () => {
+        let components,solution;
+        do { components=randomVector(); solution=round(length(components)); } while(solution===0||!Number.isInteger(solution));
+        const fakes=distractors(solution,()=>pick([
+          round(solution+nonzero(-2,2)),components.reduce((total,value)=>total+Math.abs(value),0),round(solution*2)
+        ]));
+        return question(4,`Berechne die Länge des Vektors a = ${vector(components)}.`,`Calculate the length of the vector a = ${vector(components)}.`,solution,fakes);
+      },
+      () => {
+        const first=randomVector(),second=randomVector();
+        const cosine=round(dot(first,second)/(length(first)*length(second)));
+        const fakes=distractors(cosine,()=>pick([round(-cosine),round(cosine+pick([-0.2,-0.1,0.1,0.2])),round(cosine/2)]));
+        return question(4,`Gegeben sind die Vektoren a = ${vector(first)} und b = ${vector(second)}.\nBerechne cos(alpha) für den Winkel zwischen den beiden Vektoren (gerundet).`,`Given are the vectors a = ${vector(first)} and b = ${vector(second)}.\nCalculate cos(alpha) for the angle between the two vectors (rounded).`,cosine,fakes,["√","×","÷"]);
+      },
+      () => {
+        let first,second;
+        do { first=randomVector(); second=randomVector(); } while(dot(first,second)!==0);
+        const correct=vector(second);
+        const fakes=distractors(correct,()=>{
+          const fake=[...second],index=rand(0,2); fake[index]+=nonzero(-2,2);
+          return vector(fake);
+        });
+        return question(4,`Welcher der folgenden Vektoren steht senkrecht auf a = ${vector(first)}?`,`Which of the following vectors is perpendicular to a = ${vector(first)}?`,correct,fakes);
+      },
+      () => {
+        const direction=randomVector(),base=randomVector(),parameter=nonzero(-5,5);
+        const point=base.map((value,index)=>value+parameter*direction[index]);
+        const correct=vector(point);
+        const fakes=distractors(correct,()=>{
+          const fake=[...point]; fake[rand(0,2)]+=nonzero(-3,3); return vector(fake);
+        });
+        return question(4,`Gegeben ist die Gerade g: x = ${vector(base)} + s * ${vector(direction)}.\nWelcher der folgenden Punkte liegt auf g?`,`Given is the line g: x = ${vector(base)} + s * ${vector(direction)}.\nWhich of the following points lies on g?`,correct,fakes);
+      },
+      () => {
+        let coefficients,point,distance;
+        do {
+          coefficients=Array.from({length:4},()=>nonzero(-10,10)); point=randomVector();
+          distance=round(Math.abs(dot(coefficients.slice(0,3),point)+coefficients[3])/length(coefficients.slice(0,3)));
+        } while(!Number.isInteger(distance));
+        const fakes=distractors(distance,()=>pick([
+          round(Math.abs(distance+nonzero(-2,2))),round(distance+rand(1,3)),round(distance*2),round(distance/2)
+        ]));
+        const plane=`${polynomial([[coefficients[0],"x"],[coefficients[1],"y"],[coefficients[2],"z"],[coefficients[3],""]])} = 0`;
+        return question(4,`Berechne den Abstand des Punktes P${vector(point)}\nvon der Ebene E: ${plane}.`,`Calculate the distance of the point P${vector(point)}\nfrom the plane E: ${plane}.`,distance,fakes,["√","÷"]);
+      },
+      () => {
+        const bits=bin(rand(10,255)),value=parseInt(bits,2);
+        const fakes=distractors(value,()=>pick([value+nonzero(-3,3),parseInt([...bits].reverse().join(""),2),parseInt(flipBit(bits),2)]));
+        return question(5,`Wandle die Binärzahl ${bits} in das Dezimalsystem um.`,`Convert the binary number ${bits} into the decimal system.`,value,fakes);
+      },
+      () => {
+        const value=rand(10,255),bits=bin(value);
+        const fakes=distractors(bits,()=>{
+          const variant=rand(1,3);
+          return variant===1?bin(value+nonzero(-3,3)):variant===2?bin(parseInt([...bits].reverse().join(""),2)):flipBit(bits);
+        });
+        return question(5,`Wandle die Dezimalzahl ${value} in das Binärsystem um.`,`Convert the decimal number ${value} into the binary system.`,bits,fakes);
+      },
+      () => {
+        const bits=bin(rand(10,255)),value=parseInt(bits,2),hex=numberBase(value,16);
+        const fakes=distractors(hex,()=>{
+          const variant=rand(1,3);
+          return variant===1?numberBase(value+nonzero(-3,3),16):variant===2?[...hex].reverse().join(""):numberBase(parseInt(flipBit(bits),2),16);
+        });
+        return question(5,`Wandle die Binärzahl ${bits} in das Hexadezimalsystem um.`,`Convert the binary number ${bits} into the hexadecimal system.`,hex,fakes);
+      },
+      () => {
+        const octal=numberBase(rand(10,255),8),value=parseInt(octal,8);
+        const fakes=distractors(value,()=>pick([parseInt(octal,10),value+nonzero(-3,3),parseInt([...octal].reverse().join(""),8)]));
+        return question(5,`Wandle die Oktalzahl ${octal} in das Dezimalsystem um.`,`Convert the octal number ${octal} into the decimal system.`,value,fakes);
+      },
+      () => {
+        let first=rand(10,255),second=rand(10,255);
+        const operation=pick(["+","-"]);
+        if(operation==="-") while(first<second) { first=rand(10,255); second=rand(10,255); }
+        const result=first+(operation==="+"?second:-second),correct=bin(result);
+        const fakes=distractors(correct,()=>{
+          const variant=rand(1,3);
+          if(variant===1) return bin(Math.abs(result+nonzero(-3,3)));
+          if(variant===2) return bin(operation==="+"?Math.abs(first-second):first+second);
+          return flipBit(correct);
+        });
+        return question(5,`Berechne im Binärsystem:\n${bin(first)} ${operation} ${bin(second)}`,`Calculate in the binary system:\n${bin(first)} ${operation} ${bin(second)}`,correct,fakes);
+      }
+    ];
+
+    function createQuestions() {
+      return builders.map((build, index) => {
+        for (let attempt = 0; attempt < 100; attempt++) {
+          try {
+            const item = build();
+            const options = shuffle([item.solution, ...item.fakes]);
+            if (options.length === 4 && new Set(options).size === 4 && item.topic === Math.floor(index/5)) return {...item, options, answer:options.indexOf(item.solution)};
+          } catch (error) { if (attempt === 99) throw error; }
+        }
+        throw Error(`Could not build question ${index+1}`);
+      });
+    }
+    function element(tag, text, className) { const node=document.createElement(tag); if (text !== undefined) node.textContent=text; if (className) node.className=className; return node; }
+    function button(text, action, className="") { const node=element("button",text,className); node.type="button"; node.addEventListener("click",action); return node; }
+    function panel(parent, className="") { const node=element("section",undefined,`panel ${className}`); parent.append(node); return node; }
+    function time(seconds) { const value=Math.max(0,Math.floor(seconds)); return [Math.floor(value/3600),Math.floor(value/60)%60,value%60].map(number=>String(number).padStart(2,"0")).join(":"); }
+    function elapsed() { return state.started ? Math.floor((Date.now()-state.started)/1000) : state.elapsed; }
+    function updateClock() {
+      const clock=document.querySelector("#clock");
+      if(state.page!=="test") { clock.textContent=""; return; }
+      state.elapsed=elapsed();
+      const remaining=7200-state.elapsed;
+      clock.textContent=state.mode==="timer" ? (remaining<=0?t("timeOver"):`${t("remaining")}: ${time(remaining)}`) : `${t("elapsed")}: ${time(state.elapsed)}`;
+    }
+    function stopClock() { if(state.interval) clearInterval(state.interval); state.interval=null; if(state.started) state.elapsed=elapsed(); state.started=0; }
+    function render() {
+      document.documentElement.lang=state.language;
+      document.documentElement.dataset.theme=state.theme;
+      document.querySelector("#language").value=state.language;
+      document.querySelector("#theme").value=state.theme;
+      document.querySelector("#theme option[value=light]").textContent=t("light");
+      document.querySelector("#theme option[value=dark]").textContent=t("dark");
+      document.querySelector("#language-label").firstChild.textContent=state.language==="de"?"Sprache":"Language";
+      document.querySelector("#theme-label").firstChild.textContent=state.language==="de"?"Design":"Appearance";
+      const app=document.querySelector("#app"); app.replaceChildren();
+      if(state.page==="start") renderStart(app);
+      else if(state.page==="test") renderTest(app);
+      else renderResult(app);
+      updateClock();
+    }
+    function renderStart(app) {
+      const intro=element("section",undefined,"intro"); intro.append(element("h1",t("welcome")),element("h2",t("title")),element("p",t("intro"),"lead")); app.append(intro);
+      const rules=panel(app); rules.append(element("h2",t("rules"))); const list=element("ul"); for(const rule of t("instructions")) list.append(element("li",rule)); rules.append(list);
+      const notice=panel(app,"notice"); notice.append(element("h2",t("noticeTitle")),element("p",t("notice")));
+      app.append(element("h2",t("topics")),element("p",t("topicsSubtitle"),"muted")); const grid=element("div",undefined,"topic-grid"); topics.forEach((topic,index)=>{ const item=element("section",undefined,"topic"),list=element("ul"); topic[state.language][1].forEach(subtopic=>list.append(element("li",subtopic))); item.append(element("h3",`${index+1}. ${topic[state.language][0]}`),list); grid.append(item); }); app.append(grid);
+      const actions=element("div",undefined,"actions"),mode=element("label",t("mode")),select=element("select"),hint=element("small",t(state.mode==="timer"?"modeHintTimer":"modeHintStopwatch")); [["timer",t("timer")],["stopwatch",t("stopwatch")]].forEach(([value,label])=>{ const option=element("option",label); option.value=value; select.append(option); }); select.value=state.mode; select.addEventListener("change",()=>{state.mode=select.value; hint.textContent=t(state.mode==="timer"?"modeHintTimer":"modeHintStopwatch");}); mode.append(select,hint); actions.append(mode,button(t("start"),start,"primary")); app.append(actions);
+    }
+    function start() { try { state.questions=createQuestions(); } catch(error) { alert(error.message); return; } state.answers=Array(state.questions.length).fill(null); state.helpers={}; state.current=0; state.elapsed=0; state.started=Date.now(); state.page="test"; state.interval=setInterval(updateClock,250); render(); window.scrollTo(0,0); }
+    function navigate(index) { state.current=Math.max(0,Math.min(index,state.questions.length-1)); render(); window.scrollTo(0,0); }
+    function abort() { stopClock(); state.page="start"; render(); window.scrollTo(0,0); }
+    function finish() { stopClock(); state.page="result"; render(); window.scrollTo(0,0); }
+    function calculate(operation, first, second) {
+      const parse = text => { if (!text.trim()) throw Error("empty"); const number=Number(text.replace(",",".")); if (!Number.isFinite(number)) throw Error("invalid"); return number; };
+      const value=parse(first), other=["×","÷"].includes(operation)?parse(second):0;
+      const result=({"sin":()=>Math.sin(value*Math.PI/180),"cos":()=>Math.cos(value*Math.PI/180),"tan":()=>Math.tan(value*Math.PI/180),"sin⁻¹":()=>Math.asin(value)*180/Math.PI,"cos⁻¹":()=>Math.acos(value)*180/Math.PI,"tan⁻¹":()=>Math.atan(value)*180/Math.PI,"√":()=>Math.sqrt(value),"×":()=>value*other,"÷":()=>value/other})[operation]();
+      if(!Number.isFinite(result)) throw Error("invalid"); return round(result,4);
+    }
+    function renderHelper(parent,item,index) {
+      const box=panel(parent); box.append(element("h2",t("helper")),element("p",t("helperHint"),"muted")); const fields=element("div",undefined,"helper-fields"),saved=state.helpers[index]||{};
+      const operation=element("select"); for(const tool of item.tools) { const option=element("option",tool); operation.append(option); } operation.value=saved.operation||item.tools[0];
+      const first=element("input"),second=element("input"); first.setAttribute("aria-label","1"); second.setAttribute("aria-label","2"); first.placeholder="0"; second.placeholder="0"; first.value=saved.first||""; second.value=saved.second||"";
+      const output=element("span",`${t("result")}: ${saved.result??"–"}`,"helper-output");
+      const toggle=()=>{ second.disabled=!["×","÷"].includes(operation.value); if(second.disabled) second.value=""; }; operation.addEventListener("change",toggle); toggle();
+      fields.append(operation,first,second,button("=",()=>{ let result; try { result=calculate(operation.value,first.value,second.value); } catch { result=t("invalid"); } output.textContent=`${t("result")}: ${result}`; state.helpers[index]={operation:operation.value,first:first.value,second:second.value,result}; }),output); box.append(fields);
+    }
+    function renderTest(app) {
+      const index=state.current,item=state.questions[index],heading=element("div",undefined,"test-heading"); heading.append(element("strong",`${t("question")} ${index+1} ${t("of")} ${state.questions.length}`),element("span",`${t("topic")}: ${topics[item.topic][state.language][0]}`,"muted")); app.append(heading);
+      const progress=element("progress"); progress.max=state.questions.length; progress.value=index+1; app.append(progress);
+      panel(app).append(element("div",item[state.language],"question-text")); const options=element("div",undefined,"options"); item.options.forEach((option,number)=>{ const choice=button("",()=>{state.answers[index]=number; render();},`option ${state.answers[index]===number?"selected":""}`); choice.setAttribute("aria-pressed",String(state.answers[index]===number)); choice.append(element("strong","ABCD"[number]),document.createTextNode(option)); options.append(choice); }); app.append(options);
+      if(item.tools.length) renderHelper(app,item,index);
+      const actions=element("nav",undefined,"actions"),previous=button(t("back"),()=>navigate(index-1)),next=button(t("next"),()=>navigate(index+1)); previous.disabled=index===0; next.disabled=index===state.questions.length-1; actions.append(previous,next,element("span",undefined,"spacer"),button(t("abort"),abort),button(t("finish"),finish,"primary")); app.append(actions);
+    }
+    function renderResult(app) {
+      const results=state.questions.map((item,index)=>state.answers[index]===item.answer),correct=results.filter(Boolean).length,total=results.length,percent=Math.round(correct/total*100),passed=percent>=50;
+      const summary=panel(app); summary.append(element("h1",t("evaluation")),element("h2",t(passed?"passed":"failed"),passed?"passed":"failed"),element("div",`${correct} / ${total} ${t("score")} (${percent} %)`,"score"),element("p",t("passing")),element("p",`${t(state.mode==="timer"?"remaining":"elapsed")}: ${time(state.mode==="timer"?7200-state.elapsed:state.elapsed)}`));
+      app.append(element("h2",t("byTopic"))); const byTopic=panel(app); topics.forEach((topic,number)=>{ const indexes=state.questions.map((item,index)=>item.topic===number?index:-1).filter(index=>index>=0); const row=element("div",undefined,"row result-row"); row.append(element("span",topic[state.language][0]),element("strong",`${indexes.filter(index=>results[index]).length} / ${indexes.length}`)); byTopic.append(row); });
+      app.append(element("h2",t("details"))); const details=panel(app); state.questions.forEach((item,index)=>{ const detail=element("div",undefined,"detail"),selected=state.answers[index]; const head=element("div",undefined,"row"); head.append(element("strong",`${t("question")} ${index+1}`),element("strong",t(results[index]?"correct":"wrong"),results[index]?"passed":"failed")); detail.append(head,element("p",item[state.language])); detail.append(element("p",`${t("yourAnswer")}: ${selected===null?t("noAnswer"):`${"ABCD"[selected]}  ${item.options[selected]}`}`)); if(!results[index]) detail.append(element("p",`${t("correctAnswer")}: ${"ABCD"[item.answer]}  ${item.options[item.answer]}`)); details.append(detail); });
+      const actions=element("div",undefined,"actions"); actions.append(button(t("newTest"),()=>{state.page="start";render();window.scrollTo(0,0);},"primary")); app.append(actions);
+    }
+    document.querySelector("#language").addEventListener("change",event=>{state.language=event.target.value; render();});
+    document.querySelector("#theme").addEventListener("change",event=>{state.theme=event.target.value; render();});
+    render();
+  </script>
+</body>
+</html>
